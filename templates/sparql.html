@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LexDB - SPARQL Query Interface</title>
+    <!-- Import Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="center-align teal-text">SPARQL Query Interface</h1>
+        <form action="/sparql" method="POST">
+            <div class="input-field">
+                <textarea name="query" id="query" class="materialize-textarea"></textarea>
+                <label for="query">SPARQL Query</label>
+            </div>
+            <button type="submit" class="btn waves-effect waves-light teal">Submit</button>
+        </form>
+    </div>
+</body>
+
+</html>

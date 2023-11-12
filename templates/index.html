@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LexDB - Lexicographic Data Database</title>
+    <!-- Import Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Import jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Import Materialize JS (needed for the dropdowns and other components) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <style>
+        /* Set the width of the SPARQL card to match other cards */
+        #sparql {
+            width: 500px;
+        }
+
+        /* Make the results scrollable */
+        #results {
+            overflow-y: scroll;
+            height: 100px; /* Adjust as needed */
+        }
+
+        /* Create a blue glow effect */
+        .blue-glow {
+            animation: glow 2s ease-out;
+            box-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 15px #00f, 0 0 20px #00f;
+        }
+
+        /* Define the glow animation */
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 15px #00f, 0 0 20px #00f;
+            }
+
+            to {
+                box-shadow: none;
+            }
+        }
+    </style>
+    <style>
+        .container{
+            background-color: #f5f5f5;
+             width: 100vw;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        </style>
+        <style>
+            .logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Gap between logos */
+}
+
+.logo {
+    width: 100px; 
+    height: 100px; 
+    object-fit: contain; 
+}
+
+
+.logo:hover {
+    transform: scale(1.1); /* Grow effect on hover */
+}
+
+
+
+
+
+
+/* On hover effect */
+.logo:hover {
+    transform: scale(1.1);  /* Slightly enlarge the image */
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);  /* Enhance shadow on hover for depth */
+    filter: brightness(110%); /* Slightly increase brightness */
+}
+
+#header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Gap between logos and the central content */
+    text-align: center; /* To center-align text within the #title-section */
+}
+
+.logo {
+    width: 200px;  /* Set desired width. It'll scale the height automatically */
+    object-fit: contain; /* To ensure the full images are shown */
+    border-radius: 10px; 
+    cursor: pointer;
+}
+
+
+        </style>
+        <style>
+            #resultGrid {
+                height: 300px;
+                overflow-y: auto;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+
+            #welcome-user {
+    background-color: #009688; /* Material Design Teal */
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 3px rgba(0, 150, 136, 0.3); /* This creates the glow effect */
+    transition: opacity 0.5s; /* Smooth transition when it disappears and reappears */
+    z-index: 1000; /* To ensure it stays on top of other elements */
+}
+#welcome-user h6 {
+    color: white; /* Text color */
+    margin: 0; /* Resetting margin */
+}
+
+        </style>
+        
+</head>
+
+<body>
+
+    
+    <div class="container" style="width: 90%; display:flex; flex-direction: column;">
+        <div id="header" class="center-align" style="position: relative;">
+            <div id="welcome-user" style="position: absolute; top: 10px; right: 10px; display: none;">
+                <h6>Welcome <span id="username-welcome"></span>!</h6>
+            </div>
+            
+            <!-- Logo1 -->
+            <img src="{{ url_for('static', filename='logo1.png') }}" alt="Logo 1" class="logo" id="logo1">
+        
+            <div id="title-section">
+                <h1 class="teal-text">AfriLex</h1>
+                <div id="welcome">
+                 
+                    <h5 class="grey-text">Welcome to AfriLex, the Bantu Lexicographic Data Database</h5>
+
+                </div>
+            </div>
+            
+            <!-- Logo2 -->
+           
+        </div>
+       <!--  <img src="/static/Afrilexlogo.png" alt="Logo 3" class="logo3" id="logo3" style="width:400px;"> -->
+        <div class = "actions" id="actions" style="display:flex; flex-direction: row; background-color: #f5f5f5; width: 100%; box-sizing: border-box;" >
+
+       
+       
+       
+       <!-- NEW CODE ENDS: SPARQL Query Interface -->
+       
+       <!-- Batch Upload Card -->
+<!-- Batch Upload Card -->
+<div id="upload" style="width:500px; display:none;">
+    <div class="card blue-grey darken-1" id="upload-card" style="display: inline-block;">
+        <div class="card-content white-text">
+            <span class="card-title">Batch Upload</span>
+            <form id="upload-form">
+                <div class="input-field">
+                    <input type="number" name="batch_size" id="batch_size" required class="validate">
+                    <label for="batch_size">Batch Size:</label>
+                </div>
+                <div class="input-field">
+                    <select name="mola_language_code" id="mola_language_code" required>
+                        <!-- Add the list of MOLA language codes here -->
+                        <option value="zu">zu</option>
+                        <option value="sn">sn</option>
+                        <option value="xho">xho</option>
+                    </select>
+                    <label>Select MOLA Language Code:</label>
+                </div>
+                <div class="input-field">
+                    <select name="grammatical_category" id="grammatical_category" required>
+                        <!-- Add the list of grammatical categories here -->
+                            <option value="Noun">Noun</option>
+                            <option value="Verb">Verb</option>
+                            <option value="Adjective">Adjective</option>
+                            <option value="Adverb">Adverb</option>
+                            <option value="Pronoun">Pronoun</option>
+                        <!-- ...add other grammatical categories as needed -->
+                    </select>
+                    <label>Select Grammatical Category:</label>
+                </div>
+
+                <button type="submit" class="btn waves-effect waves-light teal">Upload</button>
+            </form>
+            <div id="upload-message"></div>
+        </div>
+    </div>
+    <div class="progress" id="upload-progress" style="display: none;">
+        <div class="determinate" style="width: 0%;"></div>
+    </div>
+</div>
+
+         <!-- SPARQL Query Card -->
+<div id="sparql" class="card blue-grey darken-1" style="margin-top:20px; display:none;">
+    <div class="card-content white-text">
+        <div class="query-section">
+            <span class="card-title">SPARQL Query</span>
+            <form id="sparql-form">
+                <div class="input-field">
+                    <input type="text" name="query" id="query" required class="validate">
+                    <label for="query">Enter your SPARQL query:</label>
+                </div>
+                <button type="submit" class="btn waves-effect waves-light teal">Run Query</button>
+            </form>
+        </div>
+        <div id="query-results" class="input-field">
+            <textarea id="results" class="materialize-textarea"></textarea>
+            <label for="results">Results:</label>
+        </div>
+    </div>
+</div>
+    <div id="updown"  style="display:none;">
+
+    <div class="download" style="display: none;">
+        <a href="/download_db_dump" class="btn waves-effect waves-light teal" download>Download Database Dump</a>
+    </div>
+    <div class="card" style="background-color: #546e7a !important;">
+        <div class="card-content white-text">
+            <span class="card-title">Verb Generation</span>
+            <button class="btn waves-effect waves-light" onclick="generateVerbForms()">Generate Verb Forms</button>
+        </div>
+    </div>
+</div>
+
+
+    
+    </div>
+
+
+    <div class="batchrow" style="text-align: left; margin-right: auto; margin-bottom: 20px; background-color:#f5f5f5; padding: 15px 0;display: none;">
+        <div style="padding-left: 16px;">
+            <h4 class="batch-title" style="color: #00695c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; font-size: 28px; border-bottom: 2px solid #00695c; display: inline-block; margin-bottom: 5px;">Batches</h4>
+        </div>
+    </div>
+    
+    
+
+
+
+    <div class="row" style="margin-bottom: 0;display:flex; "></div>
+    
+                    <!-- Batch Upload Card -->
+ 
+ 
+     
+
+
+       
+        
+        <div id="loginreg" class="loginreg" style="display: flex; justify-content: center; align-items: center;">
+
+            <!-- Login Section -->
+            <div class="col s7" style="width: 300px; padding: 20px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1); border-radius: 10px; background-color: #e0e0e0; margin: 10px;">
+                <h2 class="center-align teal-text" style="font-size: 20px;">Login to LexDB</h2>
+                <form id="login-form">
+                    <div class="input-field">
+                        <input type="text" name="username" id="username" required>
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" name="password" id="password" required>
+                        <label for="password">Password</label>
+                    </div>
+                    <button type="submit" class="btn waves-effect waves-light teal">Login</button>
+                    <div id="login-message"></div>
+                </form>
+            </div>
+        
+            <!-- Registration Section -->
+            <div class="col s4" style="width: 300px; padding: 20px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1); border-radius: 10px; background-color: #d7ccc8; margin: 10px;">
+                <h2 class="center-align brown-text" style="font-size: 20px; margin:10px">Register</h2>
+                <form id="register-form">
+                    <div class="input-field">
+                        <input type="email" name="email" id="email" required>
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="text" name="username" id="register-username" required>
+                        <label for="register-username">Username</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" name="password" id="register-password" required>
+                        <label for="register-password">Password</label>
+                    </div>
+                    <button type="submit" class="btn waves-effect waves-light brown lighten-1">Register</button>
+                    <div id="register-message"></div>
+                </form>
+            </div>
+        
+        </div>
+        
+        
+
+
+
+    </div>
+
+    <!-- Import Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+
+    function generateVerbForms() {
+    fetch('/generate_verb_forms', {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message); // or handle the response data as needed
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while generating verb forms!');
+    });
+}
+
+
+        $(window).on('scroll', function() {
+    if ($(this).scrollTop() > 50) { // Change the 50 to the desired scroll amount before hiding
+        $('#welcome-user').fadeOut();
+    } else {
+        $('#welcome-user').fadeIn();
+    }
+});
+
+
+        
+         var loginflag =false;
+          $(document).ready(function(){
+            // Initialize MaterializeCSS dropdowns
+            $('select').formSelect();
+        });
+       
+        $('#login-form').submit(function (e) {
+            e.preventDefault();
+
+            // Retrieve entered credentials
+            var enteredUsername = $('#username').val();
+            var enteredPassword = $('#password').val();
+            
+
+            // Send a POST request to the server to verify the credentials
+            $.post('/login', { username: enteredUsername, password: enteredPassword }, function (response) {
+                if (response === "Logged in successfully!") {
+                    $('#login-message').text("Login Successful! Redirecting...");
+                    $('#login-container').hide();
+   
+                    // Optionally, redirect to another page or show the user's dashboard
+                    // location.href = "/dashboard"; 
+                    $('#login-message').text("Login Successful! Redirecting...");
+    
+                // Hide Login and Registration sections
+                $('.col.s7').hide();
+                $('.col.s1').hide();
+                $('.col.s4').hide();
+                $('#welcome').show();
+                $('.batcheslogo').css({
+    "font-family": "'Ubuntu', sans-serif",
+    "font-size": "3em",
+    "color": "#d2a679",
+    "background-color": "#009688",
+    "padding": "20px 40px",
+    "border": "5px dashed #e0ae7c",
+    "border-radius": "15px",
+    "text-align": "center",
+    "box-shadow": "5px 5px 15px rgba(0, 0, 0, 0.2)"
+}).show();
+
+                $('.col.s12.m6').show();
+                loginflag=true
+                $('#upload, #sparql, .download').css({
+    'display': 'flex',
+    'justify-content': 'center',  // Centers horizontally
+    'align-items': 'center',      // Centers vertically
+    'height': '100%'              // Takes full height of the parent
+}).show();
+
+$('#actions').css({
+    'justify-content': 'space-between',  // This ensures equal spacing between the child divs
+    'align-items': 'stretch',            // This ensures the child divs take the full height of the parent
+    'gap': '20px',                       // This provides spacing between child divs
+    'padding': '10px'                    // Some padding for the parent to look neat
+});
+
+$('#upload, .download, #uploadcsv,.batchrow').css({
+    'flex': '1',
+    'display': 'flex',
+    'flex-direction': 'row',
+    'justify-content': 'center',
+    'align-items': 'center',
+    'margin': '10px',
+    'box-sizing': 'border-box'
+}).show();
+
+
+$('#sparql').css({
+    'flex': '1',
+    'display': 'flex',
+    'flex-direction': 'row',
+    'justify-content': 'flex-start',
+    'align-items': 'flex-start', // changed to center to align vertically, if needed
+    'margin': '10px',
+    'box-sizing': 'border-box'
+}).show();
+
+
+$('#sparql .card-content').css({
+    'display': 'flex',
+    'flex-direction': 'row'
+});
+
+$('#sparql .query-section').css({
+    'flex': '1',
+    'align-items': 'flex-start'
+});
+
+$('#sparql #query-results').css({
+    'flex': '2'
+});
+$('#updown').css({
+    'display': 'flex',
+    'flex-direction': 'column', 
+}).show();
+
+$('#verb-concord-card').css({
+    'display':'column'
+}).show();
+
+// Style cards to fill the div
+$('.card').css({
+    'width': '100%',
+    'height': '100%',
+    'box-sizing': 'border-box',
+    'display': 'flex',
+    'flex-direction': 'column',
+    'justify-content': 'space-between'
+});
+
+// Style card-content to take the full height of the card
+$('.card-content').css({
+    'display': 'flex',
+    'flex-direction': 'column',
+    'justify-content': 'space-between',
+    'height': '100%'
+});
+
+
+                // Display welcome message with the entered username
+                $('#username-welcome').text(enteredUsername);
+                $('#welcome-user').show();
+                } else {
+                    $('#login-message').text("Incorrect username or password!");
+                }
+            });
+        });
+
+            $('#register-form').submit(function(e) {
+                    e.preventDefault();
+                        
+                    var email = $('#email').val();
+                    var username = $('#register-username').val();
+                    var password = $('#register-password').val();
+                        
+                    $.post('/register', {
+                        email: email,
+                        username: username,
+                        password: password
+                    }, function(response, status) {
+                        if (status === 200) {
+                            $('#register-message').text("Registration Successful! You can now log in.");
+                        } else {
+                            $('#register-message').text(response);
+                        }
+                    });
+                });
+
+
+        // Create a function to fetch batch data and populate cards
+        function fetchBatchDataAndDisplayCards() {
+    $.get('/get_batch_data', function (data) {
+        
+        data = JSON.parse(data);
+        var newDiv = $('<div></div>');
+        for (var i = 0; i < data.length; i++) {
+            var batch = data[i];
+            console.log("BATCH")
+            console.log(batch)
+            var batchID = "Batch: " + batch[0];
+            var uploader = "Uploaded By: " + batch[6];
+            var uploadDate = "Date: " + new Date(batch[2]).toISOString().split('T')[0];
+            var language = "Language: " + batch[5];
+            var lexicalEntries = "Lexical Entries: " + batch[3];
+            var sucessrate = "Success Rate: " + batch[4]
+
+            var newCard = '<div class="col s12 m6" style="display:none;">' +
+                '<div class="card">' +
+                '<div class="card-content">' +
+                '<span class="card-title">' + batchID + '</span>' +
+                '<p>' + uploadDate + '</p>' +
+                '<p>' + uploader + '</p>' +
+                '<p>' + language + '</p>' +
+                '<p>' + lexicalEntries + '</p>' +
+                '<p>' + sucessrate + '</p>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            // Append the new card to the row containing past uploads
+            newDiv.append(newCard);           
+        }
+    // Clear previous data in the '.row' div
+    $('.row').html('');
+
+    // Append the new div containing batches to the '.row' div
+    $('.row').append(newDiv);
+
+    // Show the new content
+    if(loginflag){
+        $('.row .col.s12.m6').fadeIn();
+    }
+    
+    });
+}
+
+function incrementProgressBar() {
+    var currentWidth = 0;
+    var increment = 2; // Increase by 2% every interval
+    var interval = setInterval(function() {
+        currentWidth += increment;
+        if (currentWidth > 90) { // Set the max width to 90% for simulation purposes
+            clearInterval(interval);
+        }
+        $(".determinate").width(currentWidth + "%");
+    }, 500); // Increase the width every 500ms (0.5 seconds)
+}
+
+        // Handle form submission
+        $("#upload-form").submit(function(e) {
+    e.preventDefault();  // Prevent the default form submission behavior
+
+    var batchSize = $("#batch_size").val();
+    var language = $("#mola_language_code").val();
+    var grammaticalCategory = $('#grammatical_category').val()
+
+    // Show the progress bar and reset its value
+    $("#upload-progress").show();
+    $(".determinate").width("0%");
+
+    // Start the slow progress bar animation
+    incrementProgressBar();
+
+    // Make an AJAX POST request to upload the batch
+    $.ajax({
+        type: 'POST',
+        url: '/batch_upload',
+        data: { 
+        batch_size: batchSize, 
+        language: language, 
+        grammatical_category: grammaticalCategory 
+        },
+        success: function(response) {
+            // Display message after upload
+            $('#upload-message').text(response.message);
+
+            // After upload, fetch batch data and create cards again
+            fetchBatchDataAndDisplayCards();
+            $('select').formSelect();
+
+            // Hide progress bar after successful upload
+            $("#upload-progress").hide();
+        },
+        error: function() {
+            // Handle error scenarios (e.g., server returns a 500 status code)
+            $('#upload-message').text("An error occurred while uploading.");
+            
+            // Hide progress bar after the error
+            $("#upload-progress").hide();
+        }
+    });
+});
+
+        $('#sparql-form').submit(function (e) {
+    e.preventDefault();
+
+    // Retrieve entered query
+    var enteredQuery = $('#query').val();
+
+    // Send a POST request to the server to execute the query
+    $.post('/sparql', { query: enteredQuery }, function (response) {
+        // Parse JSON response
+        var data = JSON.parse(response);
+
+        // Create a HTML table from the parsed JSON
+        var table = $('<table>');
+        var thead = $('<thead>');
+        var tbody = $('<tbody>');
+        
+        // Add table headers
+        var thRow = $('<tr>');
+        data.head.vars.forEach(function(header) {
+            thRow.append($('<th>').text(header));
+        });
+        thead.append(thRow);
+
+        // Add table data
+        data.results.bindings.forEach(function(binding) {
+            var tr = $('<tr>');
+            data.head.vars.forEach(function(header) {
+                tr.append($('<td>').text(binding[header].value));
+            });
+            tbody.append(tr);
+        });
+
+        table.append(thead);
+        table.append(tbody);
+        
+        // Add table to #query-results div
+        $('#query-results').html(table);
+    });
+});
+
+        // Call the function when the page loads to populate initial data
+        fetchBatchDataAndDisplayCards();
+
+        function fetchPrefixes() {
+    let language = document.getElementById("language").value;
+
+    fetch('/get_verb_prefixes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `language=${language}`
+    })
+    .then(response => response.json())
+    .then(prefixes => {
+        let verb = document.getElementById("verb").value;
+        let resultGrid = document.getElementById("resultGrid");
+        resultGrid.innerHTML = '';  // Clear previous results
+
+        for(let i = 0; i < prefixes.length; i++) {
+            let nounClassForm = `${prefixes[i]}${verb}`;
+            let div = document.createElement("div");
+            
+            div.style.marginBottom = "5px";  // Adding small white space
+            div.textContent = `Noun Class ${i+1} Form: ${nounClassForm}`;
+            
+            resultGrid.appendChild(div);
+        }
+    })
+    .catch(error => {
+        console.error('There was an error!', error);
+    });
+}
+
+
+    function displayResults(prefixes, verb) {
+        let grid = document.getElementById('resultGrid');
+        grid.innerHTML = '';  // Clear any previous results
+
+        prefixes.forEach(prefix => {
+            let combinedVerb = prefix + verb;
+            let div = document.createElement('div');
+            div.className = 'result';
+            div.innerText = combinedVerb;
+            grid.appendChild(div);
+        });
+    }
+
+    // Initialize materialize select components
+    $(document).ready(function(){
+        $('select').formSelect();
+    });
+    </script>
+
+</body>
+</html>
